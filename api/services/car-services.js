@@ -25,6 +25,10 @@ const getAllCars = (q, s, l) => {
     { $limit: l }
   ])
 }
+
+const getOperatorCars = (id) => {
+  return Car.find( { "user": id } )
+}
 const getTotalMatch = (q) => {
   return Car.aggregate([
     { $match: { name: { $regex: q, $options: 'i' } } },
@@ -109,5 +113,6 @@ module.exports = {
   updateOneCar,
   getById,
   deleteCar,
-  createMultiple
+  createMultiple,
+  getOperatorCars
 }

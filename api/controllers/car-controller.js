@@ -7,11 +7,18 @@ const {
   doesItExist,
   updateOneCar,
   deleteCar,
+  getOperatorCars
 } = require('../services/car-services')
 
 
 const index = async (req, res) => {
   try {
+    if(req.userData.userType === 'OPERATOR'){
+      const cars = await getOperatorCars(req.userData._id)
+      return res.status(200).json({
+        results: cars,
+      })
+    }
     const limit = parseInt(req.query.limit) || 100
     const skip = parseInt(req.query.offset) || 0
     const query = req.query.search || ''
