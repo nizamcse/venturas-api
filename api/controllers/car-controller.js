@@ -157,3 +157,7 @@ const findOne = async (req, res) => {
 
 
 module.exports = { index, store, updateOne, deleteOne, findOne }
+
+
+
+/// 869655
