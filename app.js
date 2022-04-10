@@ -9,6 +9,7 @@ const userRoutes = require('./api/routes/user')
 const loginRoute = require('./api/routes/login')
 const branchRoute = require('./api/routes/branch')
 const cityRoute = require('./api/routes/cities')
+const carRoute = require('./api/routes/cars')
 app.use(morgan('dev'))
 app.use(cors())
 app.use(express.static('public'))
@@ -30,9 +31,10 @@ app.use((req, res, next) => {
 })
 app.set('env', 'production')
 app.use('/api', loginRoute)
-app.use('/api/user',auth, userRoutes)
+app.use('/api/users',auth, userRoutes)
 app.use('/api/branches',auth, branchRoute)
-app.use('/api/cities', cityRoute)
+app.use('/api/cities',auth, cityRoute)
+app.use('/api/cars',auth, carRoute)
 
 
 app.use((req, resp, next) => {
@@ -50,6 +52,15 @@ app.use((error, req, resp, next) => {
   })
 })
 module.exports = app
+
+
+
+
+// 323904
+// admin@mail.com
+
+// 177017
+// operator@mail.com
 
 
 

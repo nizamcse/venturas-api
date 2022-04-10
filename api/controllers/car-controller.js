@@ -1,27 +1,13 @@
 const mongoose = require('mongoose')
-const multer  = require('multer')
-const xlsx = require('xlsx')
-var fs = require('fs')
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limit: 5*1024*1024,
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(csv|xls|xlsx)$/)) { 
-           return cb(new Error('Please upload a CSV/Excel file.'))
-         }
-       cb(undefined, true)
-    }
-}).single('csvFile')
 const {
-  getAllCities,
+  getAllCars,
   getTotalMatch,
-  storeCity,
+  storeCar,
   findById,
   doesItExist,
-  updateOneCity,
-  deleteCity,
-  createMultiple
-} = require('../services/city-service')
+  updateOneCar,
+  deleteCar,
+} = require('../services/car-services')
 
 
 const index = async (req, res) => {
@@ -30,7 +16,7 @@ const index = async (req, res) => {
     const skip = parseInt(req.query.offset) || 0
     const query = req.query.search || ''
     const totalMatch = await getTotalMatch(query)
-    const branches = await getAllCities(query, skip, limit)
+    const branches = await getAllCars(query, skip, limit)
     return res.status(200).json({
       results: branches,
       total: totalMatch[0] && totalMatch[0].total ? totalMatch[0].total : 0
@@ -44,16 +30,19 @@ const index = async (req, res) => {
 const store = async (req, res) => {
   const data = {
     _id: mongoose.Types.ObjectId(),
-    name: req.body.name
+    name: req.body.name,
+    modelNo: req.body.modelNo,
+    user: req.body.user,
+    city: req.body.city
   }
   try {
-    const doesCityExist = await doesItExist(req)
-    if (doesCityExist) {
+    const doescarExist = await doesItExist(req)
+    if (doescarExist) {
       return res.status(409).json({
-        message: 'City already exist'
+        message: 'car already exist'
       })
     }
-    const branch = await storeCity(data)
+    const branch = await storeCar(data)
     return res.status(200).json({
       results: branch,
       message: 'Successfully created branch'
@@ -85,18 +74,16 @@ const store = async (req, res) => {
 
 const updateOne = async (req, res) => {
   const data = {
-    name: req.body.name
+    name: req.body.name,
+    modelNo: req.body.modelNo,
+    user: req.body.user,
+    city: req.body.city
   }
   const id = req.params.id
 
   try {
-    const doesCityExist = await doesItExist(req, 1)
-    if (doesCityExist) {
-      return res.status(409).json({
-        message: 'City already exist'
-      })
-    }
-    const b = await updateOneCity(id, data)
+
+    const b = await updateOneCar(id, data)
     const branch = await findById(id)
     return res.status(200).json({
       results: branch,
@@ -130,14 +117,14 @@ const updateOne = async (req, res) => {
 const deleteOne = async (req, res) => {
   const id = req.params.id
   try {
-    const result = await deleteCity(id)
+    const result = await deleteCar(id)
     if (result.deletedCount === 0)
       return res.status(200).json({
         message: 'Record could not found.',
         results: result
       })
     return res.status(200).json({
-      message: 'City deleted successfully',
+      message: 'car deleted successfully',
       results: result
     })
   } catch (e) {
@@ -161,40 +148,5 @@ const findOne = async (req, res) => {
   }
 }
 
-const uploadCities = async (req, res) => {
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      res.status(409).send({message: err});
-    } else if (err) {
-      res.status(409).send({message: "Unknown error."});
-    }
-    else{
-        try{
-        const file = xlsx.read(req.file.buffer,{type: "buffer"});
-        const sheetNames = file.SheetNames;
-        const totalSheets = sheetNames.length;
-        let parsedData = [];
-        for (let i = 0; i < totalSheets; i++) {
-            // Convert to json using xlsx
-            const tempData = xlsx.utils.sheet_to_json(file.Sheets[sheetNames[i]]);
-            // Skip header row which is the colum names
-            tempData.shift();
-            // Add the sheet's json to our data array
-            parsedData.push(...tempData);
-        }
-        let cities = []
-        for(let i=0; i<parsedData.length; i++){
-            cities.push({
-                name: parsedData[i].name
-            });
-        }
-        const createdCities = createMultiple(cities)
-        res.status(200).send({message: "File uploaded",createdCities})
-    }catch(err){
-        res.status(409).send({message: "Could not read data from uploaded file."});
-    }
-    }
-  });
-}
 
-module.exports = { index, store, updateOne, deleteOne, findOne,uploadCities }
+module.exports = { index, store, updateOne, deleteOne, findOne }

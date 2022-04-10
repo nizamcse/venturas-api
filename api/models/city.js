@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const branchSchema = mongoose.Schema({
+const citySchema = mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
   name: {
     type: String,
@@ -10,4 +10,4 @@ const branchSchema = mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('City', branchSchema)
+module.exports = mongoose.model('City', citySchema)

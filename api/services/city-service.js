@@ -30,6 +30,22 @@ const storeCity = (data) => {
   return city.save()
 }
 
+const createMultiple = async (data) => {
+  let bulCity = [];
+
+  data.forEach(function(city) {
+    bulCity.push({
+      updateOne: {
+        filter: { name: city.name },
+        update: { $set: { name: city.name } },
+        upsert: true
+      }
+    });
+  });
+  City.bulkWrite(bulCity);
+  return true;
+}
+
 const firstOrCreate = (q) => {
   return new Promise((resolve, reject) => {
     ;(async () => {
@@ -59,7 +75,7 @@ const getById = (id) => {
 }
 
 const deleteCity = (id) => {
-  return City.remove({ _id: id })
+  return City.deleteOne({ _id: id })
 }
 
 const findById = (id) => {
@@ -74,5 +90,6 @@ module.exports = {
   doesItExist,
   updateOneCity,
   getById,
-  deleteCity
+  deleteCity,
+  createMultiple
 }

@@ -3,7 +3,7 @@ const router = express.Router()
 const mongoose = require('mongoose')
 const User = require('../models/user')
 
-router.get('/users', (req, res, next) => {
+router.get('/', (req, res, next) => {
   User.find()
     .exec()
     .then((users) => {
@@ -22,18 +22,21 @@ router.post('/signup', (req, res, next) => {
           message: 'User already exist'
         })
       } else {
+        let password = req.body.password || Math.floor(100000 + Math.random() * 900000);
         const user = new User({
             _id: mongoose.Types.ObjectId(),
             name: req.body.name,
             email: req.body.email,
-            password: req.body.password
+            password: password,
+            userType: req.body.userType
         })
         user
             .save()
             .then((result) => {
-                console.log(result)
                 res.status(201).json({
-                    message: 'Successfully created user.'
+                    message: 'Successfully created user.',
+                    user: result,
+                    password
                 })
             })
             .catch((err) => {
@@ -49,19 +52,45 @@ router.post('/signup', (req, res, next) => {
       })
     })
 })
-router.delete('/:userId', (req, res, next) => {
-  User.remove({ _id: req.params.id })
-    .exec()
-    .then((result) => {
+
+router.patch('/update/:id', async (req, res, next) => {
+  const data = {
+    name: req.body.name,
+    email: req.body.email,
+    userType: req.body.userType
+  }
+  const id = req.params.id
+  try{
+    await User.updateOne({ _id: id }, { ...data })
+    return res.status(200).json({
+      message: 'Successfully updated user',
+    })
+  }catch(error){
+    console.log(error)
+    return res.status(409).json({
+      error: 'Could not update user.',
+    })
+  }
+})
+
+router.delete('/:userId', async (req, res, next) => {
+  const id = req.params.id
+  try {
+    const result = await User.deleteOne(id)
+    if (result.deletedCount === 0)
       return res.status(200).json({
-        message: 'User has been deleted'
+        message: 'Record could not found.',
+        results: result
       })
+    return res.status(200).json({
+      message: 'User deleted successfully',
+      results: result
     })
-    .catch((err) => {
-      return res.status(500).json({
-        error: err
-      })
+  } catch (e) {
+    return res.status(500).json({
+      message: e.message
     })
+  }
 })
 
 module.exports = router
