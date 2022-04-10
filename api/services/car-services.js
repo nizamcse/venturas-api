@@ -28,7 +28,7 @@ const getAllCars = (q, s, l) => {
 
 const getOperatorCars = (id) => {
   return Car.aggregate([
-    { $match: { user: { $eq: id } } },
+    { $match: { user: id } },
     {
       $lookup: {
         from: 'cities',
