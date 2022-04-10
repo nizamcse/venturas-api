@@ -1,5 +1,6 @@
 const Car = require('../models/car')
-
+const mongoose = require('mongoose')
+const ObjectId = mongoose.Types.ObjectId;
 const getAllCars = (q, s, l) => {
   return Car.aggregate([
     { $match: { name: { $regex: q, $options: 'i' } } },
@@ -28,8 +29,8 @@ const getAllCars = (q, s, l) => {
 
 const getOperatorCars = (id) => {
   return Car.aggregate([
-    { $match: { user: id } },
-    {
+    {$match: { "user": ObjectId(id) } },
+     {
       $lookup: {
         from: 'cities',
         localField: 'city',
@@ -47,7 +48,7 @@ const getOperatorCars = (id) => {
     },
     { $unwind : "$city" },
     { $unwind : "$user" },
-  ])
+  ]);
 }
 const getTotalMatch = (q) => {
   return Car.aggregate([
